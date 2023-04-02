@@ -6,6 +6,7 @@ import os.path
 import pandas as pd
 from sklearn.cluster import KMeans
 from rich.progress import track
+import time
 
 class chatgpt_caller():
     def __init__(self, folder, api_key):
@@ -97,22 +98,67 @@ class chatgpt_caller():
 
         self.sources = self.content.split('\n')
         temp_sources = []
-        for source in track(self.sources):
+        starttime = time.time()
+        for i, source in track(enumerate(self.sources)):
             if source.strip() == '':
                 continue
             embed = self.get_embedding(source)
             if embed is not None:
                 self.embeddings.append(embed)
                 temp_sources.append(source)
+            
+            if i % 60 == 0:
+                time_used = time.time() - starttime
+                if time_used < 60:
+                    sleep_time = 60 - time_used
+                starttime = time.time()
         self.sources = temp_sources
 
         self.questions = self.get3questions()
     
         with open(os.path.join(self.folder, "embed_result.json"), 'w',encoding='utf-8') as f:
             json.dump({"sources": self.sources, "embeddings": self.embeddings, "questions": self.questions}, f, ensure_ascii=False, indent=4)
+    
+    def vector_similarity(self, x, y):
+        """
+        Returns the similarity between two vectors.
+        
+        Because OpenAI Embeddings are normalized to length 1, the cosine similarity is the same as the dot product.
+        """
+        return np.dot(np.array(x), np.array(y))
+            
+    def order_document_sections_by_query_similarity(self, query):
+        """
+        Find the query embedding for the supplied query, and compare it against all of the pre-calculated document embeddings
+        to find the most relevant sections. 
+        
+        Return the list of document sections, sorted by relevance in descending order.
+        """
+        query_embedding = self.get_embedding(query)
+        
+        document_similarities = sorted([
+            (self.vector_similarity(query_embedding, doc_embedding), doc_index) for doc_index, doc_embedding in enumerate(self.embeddings)
+        ], reverse=True, key=lambda x: x[0])
+        
+        return document_similarities
+            
+    def ask(self, question):
+        ordered_candidates = self.order_document_sections_by_query_similarity(question)
+        ctx = u""
+        for candi in ordered_candidates:
+            next = ctx + u"\n" + self.sources[candi[1]]
+            if len(next)>self.CONTEXT_TOKEN_LIMIT:
+                break
+            ctx = next
+        if len(ctx) == 0:
+          return u""    
+        
+        prompt = u"".join([
+            u"Answer the question base on the context, answer in the same language of question\n\n"
+            u"Context:" + ctx + u"\n\n"
+            u"Question:" + question + u"\n\n"
+            u"Answer:"
+        ])
 
-
-if __name__ == "__main__":
-    folder = "./"
-    text_file = "text.txt"
-    chatgpt_caller(folder).file2embedding(text_file)
+        completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content":prompt}])
+        return [prompt, completion.choices[0].message.content]

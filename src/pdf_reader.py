@@ -283,7 +283,12 @@ class pdf_reader():
         self.draw_ocr_result()
         self.generate_txt()
         self.chatgpt_embeding()
-
+        
+    def ask(self, question):
+        [prompt,answer] = self.chatgpt_caller.ask(question)
+        print("question: ", question)
+        print("prompt: ", prompt)
+        print("answer: ", answer)
 
 
 
