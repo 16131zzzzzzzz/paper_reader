@@ -17,7 +17,7 @@ model_name_to_dict = {"lcnet" : "resources/pretrained_model/picodet_lcnet_x1_0_f
 
 
 class pdf_reader():
-    def __init__(self, pdf_file, output_dir, model_name, device) -> None:
+    def __init__(self, pdf_file, output_dir, model_name, device, api_key) -> None:
         self.pdf_file = pdf_file
         self.pdf_page_num = 12 # TODO: get pdf page num
         self.output_dir = os.path.join(output_dir, pdf_file.split("/")[-1].split(".")[0])
@@ -38,7 +38,8 @@ class pdf_reader():
         self.gptPath = os.path.join(self.output_dir, "gpt_results")
         self.create_folder(self.gptPath)
 
-        self.chatgpt_caller = chatgpt_caller(self.gptPath)
+        self.api_key = api_key
+        self.chatgpt_caller = chatgpt_caller(self.gptPath, self.api_key)
 
     def create_folder(self, folder_path):
         # create path if not exists

@@ -8,10 +8,8 @@ from sklearn.cluster import KMeans
 from rich.progress import track
 
 class chatgpt_caller():
-    def __init__(self, folder):
-        # get openai api key
-        with open("openai_api_key.txt", "r") as f:
-            self.api_key = f.read()
+    def __init__(self, folder, api_key):
+        self.api_key = api_key
         
         openai.api_key = self.api_key
 
