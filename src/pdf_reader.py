@@ -276,18 +276,16 @@ class pdf_reader():
         end = time.time()
         print("chatgpt embeding time: ", end-start)
 
-    def pdf_to_embeding(self):
+    def pdf_to_txt(self):
         self.generate_pics()
         self.generate_structured_pics()
         self.generate_text()
-        self.draw_ocr_result()
         self.generate_txt()
-        self.chatgpt_embeding()
         
     def ask(self, question):
         [prompt,answer] = self.chatgpt_caller.ask(question)
-        print("question: ", question)
-        print("prompt: ", prompt)
+        # print("question: ", question)
+        # print("prompt: ", prompt)
         print("answer: ", answer)
 
 
