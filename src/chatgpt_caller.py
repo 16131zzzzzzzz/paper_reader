@@ -111,6 +111,7 @@ class chatgpt_caller():
                 time_used = time.time() - starttime
                 if time_used < 60:
                     sleep_time = 60 - time_used
+                    time.sleep(sleep_time)
                 starttime = time.time()
         self.sources = temp_sources
 
