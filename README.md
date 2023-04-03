@@ -1,6 +1,8 @@
+![icon](./resources/imgs/icon.png)
+
 # paper_reader
 
-- use chatgpt to read paper
+- use chatgpt to read paper, just get started with paper's PDF file and your openai api-key
 - using paddle for more accurate pdf ocr
 - still in development
 
